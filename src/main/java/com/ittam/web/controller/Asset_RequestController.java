@@ -28,6 +28,7 @@ public class Asset_RequestController {
     @CrossOrigin(origins = "*", allowedHeaders = "*")
     public ResponseEntity<List<ITAssetsVO>> AssetAllList(){
         List<ITAssetsVO> data = assetRequestService.AssetAllList();
+
 //        System.out.println("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz");
         return new ResponseEntity<>(data, HttpStatus.OK);
     }

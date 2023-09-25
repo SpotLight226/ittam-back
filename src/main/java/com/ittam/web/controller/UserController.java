@@ -81,6 +81,7 @@ public class UserController {
     }
 
     // 사용자 퇴사 처리
+    // 사용자 퇴사 처리
     @CrossOrigin(origins = "*", allowedHeaders = "*")
     @PostMapping("/userRemove")
     public ResponseEntity<String> userRemove(@RequestBody Map<String, String> requestData) {
@@ -101,9 +102,9 @@ public class UserController {
                     throw new Exception("사용 중인 자산 반환에 실패했습니다");
                 }
             }
-            
+
             // 각 신청 테이블에서 사용자의 신청이 있는지 확인
-            int userApprovalCount = userService.userFindApproval(targetId); 
+            int userApprovalCount = userService.userFindApproval(targetId);
             int userRequestCount = userService.userFindRequest(targetId);
             int userReturnCount = userService.userFindReturn(targetId);
 

@@ -1,7 +1,6 @@
 package com.ittam.web.aws;
 
 
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
@@ -29,11 +28,15 @@ import java.util.UUID;
 @Component
 public class S3Uploader {
 
-    private final AmazonS3 amazonS3;
     private final AmazonS3Client amazonS3Client;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
+
+//    public S3Uploader() {
+//        AWSConfig config = new AWSConfig();
+//        amazonS3Client = config.amazonS3Client();
+//    }
 
     public List<NoticeImgVO> uploadImage(List<MultipartFile> multipartFiles) {
         List<NoticeImgVO> noticeImgVOList = new ArrayList<>();
@@ -47,7 +50,7 @@ public class S3Uploader {
             objectMetadata.setContentType(file.getContentType());
 
             try(InputStream inputStream = file.getInputStream()) {
-                amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, objectMetadata)
+                amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, inputStream, objectMetadata)
                         .withCannedAcl(CannedAccessControlList.PublicRead));
             } catch (IOException e) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드 실패");
@@ -75,7 +78,7 @@ public class S3Uploader {
         objectMetadata.setContentType(multipartFile.getContentType());
 
         try(InputStream inputStream = multipartFile.getInputStream()) {
-            amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, objectMetadata)
+            amazonS3Client.putObject(new PutObjectRequest(bucket, fileName, inputStream, objectMetadata)
                     .withCannedAcl(CannedAccessControlList.PublicRead));
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드 실패");
@@ -85,7 +88,7 @@ public class S3Uploader {
     }
 
     public void deleteImage(String fileName) {
-        amazonS3.deleteObject(new DeleteObjectRequest(bucket, fileName));
+        amazonS3Client.deleteObject(new DeleteObjectRequest(bucket, fileName));
     }
 
     private FileName createFileName(String fileName) {

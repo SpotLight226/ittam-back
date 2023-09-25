@@ -44,7 +44,6 @@ public interface UserMapper {
     int removeFromUserRequest(String targetId);
     int removeFromStockReturn(String targetId);
 
-
     // 검색
     ArrayList<UserVO> getSearch(@Param("value") String value, @Param("option") String option);
 

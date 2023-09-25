@@ -65,45 +65,59 @@ public class NoticeServiceImpl  implements NoticeService{
 //        noticeMapper.postNotice(params);
     }
 
+
+
+
     @Override
     public void updateNotice(NoticeVO noticeVO, List<MultipartFile> multipartFiles) {
+        // 글을 업데이트합니다.
         noticeMapper.updateNotice(noticeVO);
 
         Date currentDate = new Date();
         Timestamp currentTimestamp = new Timestamp(currentDate.getTime());
 
         if (!multipartFiles.isEmpty()) {
-            // 이미지 파일이 있는 경우, 업로드 및 업데이트
-            List<NoticeImgVO> noticeImgVOList = s3Uploader.uploadImage(multipartFiles);
-            noticeImgVOList.forEach(noticeImgVO -> {
-                noticeImgVO.setNotice_num2(noticeVO.getNotice_num());
-                noticeImgVO.setNoticeimg_regdate(currentTimestamp);
-                System.out.println(noticeImgVO);
+            // 이미지 파일이 있는 경우
+            // 새 이미지를 업로드하고 S3 주소를 받아옵니다.
+            List<NoticeImgVO> newImages = s3Uploader.uploadImage(multipartFiles);
+
+            // 이미지에 공지사항 번호와 업로드 시간을 설정합니다.
+            newImages.forEach(newImage -> {
+                newImage.setNotice_num2(noticeVO.getNotice_num());
+                newImage.setNoticeimg_regdate(currentTimestamp);
             });
-            System.out.println("==================");
-            System.out.println(noticeImgVOList.get(0).getNotice_num2());
-            noticeMapper.updateNoticeImg(noticeImgVOList.get(0));
-        } else {
-            // 이미지 파일이 없는 경우
-            // 여기에서 기존 이미지를 삭제하거나, 새 이미지를 추가하거나 할 작업을 수행합니다.
-            // 예시로 기존 이미지를 삭제하고 새 이미지를 추가하는 코드를 보여드리겠습니다.
 
             // 기존 이미지 삭제
             NoticeImgVO noticeImgVOToDelete = new NoticeImgVO();
             noticeImgVOToDelete.setNotice_num2(noticeVO.getNotice_num());
             noticeMapper.deleteNoticeImg(noticeImgVOToDelete);
 
-            // 새 이미지 추가
-            List<NoticeImgVO> noticeImgVOListToAdd = s3Uploader.uploadImage(multipartFiles);
-            noticeImgVOListToAdd.forEach(noticeImgVO -> {
-                noticeImgVO.setNotice_num2(noticeVO.getNotice_num());
-                noticeImgVO.setNoticeimg_regdate(currentTimestamp);
-            });
+            // 모든 새 이미지를 데이터베이스에 삽입합니다.
+            noticeMapper.postNoticeImgList(newImages);
+        }
+        else if (multipartFiles.isEmpty()) {
 
-            // 이미지를 추가합니다.
-            noticeMapper.postNoticeImgList(noticeImgVOListToAdd);
+            // 이미지 파일이 없는 경우
+            // 기존 이미지를 삭제합니다.
+            NoticeImgVO noticeImgVOToDelete = new NoticeImgVO();
+            noticeImgVOToDelete.setNotice_num2(noticeVO.getNotice_num());
+            noticeMapper.deleteNoticeImg(noticeImgVOToDelete);
+        }
+        else {
+            // 이미지 파일이 변경되지 않은 경우
+            // 기존 이미지를 업데이트합니다.
+            NoticeImgVO existingImage = noticeMapper.getDetailImg(String.valueOf(noticeVO.getNotice_num()));
+
+            // 가져온 기존 이미지를 업데이트합니다.
+            existingImage.setNotice_num2(noticeVO.getNotice_num());
+            existingImage.setNoticeimg_regdate(currentTimestamp);
+
+            // 기존 이미지를 데이터베이스에 업데이트합니다.
+            noticeMapper.updateNoticeImg(existingImage);
         }
     }
+
+
 
 
 
